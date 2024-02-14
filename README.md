@@ -1,4 +1,5 @@
 # UPGIT
+Upload local files to a git repositiry
 
 ### Installation
 1. `mkdir build && cd build`
