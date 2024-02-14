@@ -1,0 +1,2 @@
+---
+Checks: '*,-fuchsia-*,-cert-err58-cpp,-cert-env33-c,-cppcoreguidelines-pro-bounds-pointer-arithmetic'

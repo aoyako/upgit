@@ -5,6 +5,9 @@
 #include <sstream>
 #include <stdexcept>
 
+const std::string GIT_COMMAND = "git";
+const std::string GIT_COMMAND_DIR = GIT_COMMAND + " -C ";
+
 namespace storage {
 struct Repository {
   std::string local_path;
@@ -28,7 +31,9 @@ auto fromFile(const std::string &path) -> std::list<storage::Repository> {
   while (std::getline(file, line)) {
     line_number++;
     std::istringstream iss(line);
-    std::string target, local, remote;
+    std::string target;
+    std::string local;
+    std::string remote;
 
     if (iss >> local >> remote >> target) {
       result.push_back(storage::Repository{local, remote, target});
@@ -61,7 +66,7 @@ auto checkGitRepoExists(const std::string &local_path) -> bool {
 void setupGitRepo(const std::string &local_path,
                   const std::string &remote_path) {
   int result = 0;
-  std::string init_repo = "git -C " + local_path + " init";
+  std::string init_repo = GIT_COMMAND_DIR + local_path + " init";
   result = std::system(init_repo.c_str());
   if (result != 0) {
     throw std::runtime_error("Failed to initialize Git repository at: " +
@@ -69,11 +74,10 @@ void setupGitRepo(const std::string &local_path,
   }
 
   std::string add_remote =
-      "git -C " + local_path + " remote add origin " + remote_path;
+      GIT_COMMAND_DIR + local_path + " remote add origin " + remote_path;
   result = std::system(add_remote.c_str());
   if (result != 0) {
-    std::string undo_init = "rm -rf " + local_path;
-    std::system(undo_init.c_str());
+    std::filesystem::remove_all(local_path);
 
     throw std::runtime_error("Failed to add remote to Git repository at: " +
                              remote_path);
@@ -87,7 +91,7 @@ void updateFiles(const std::string &source, const std::string &destination) {
 }
 
 void updateLocalRepo(const std::string &local_path) {
-  std::string git_add = "git -C " + local_path + " add -A";
+  std::string git_add = GIT_COMMAND_DIR + local_path + " add -A";
   int result = std::system(git_add.c_str());
   if (result != 0) {
     throw std::runtime_error("Failed to push repository to origin master: " +
@@ -98,15 +102,15 @@ void updateLocalRepo(const std::string &local_path) {
 void updateRemoteRepo(const std::string &local_path,
                       const std::string &commit_message) {
   int result = 0;
-  std::string git_commit =
-      "git -C " + local_path + " commit -m " + "\"" + commit_message + "\"";
+  std::string git_commit = GIT_COMMAND_DIR + local_path + " commit -m " + "\"" +
+                           commit_message + "\"";
   result = std::system(git_commit.c_str());
   if (result != 0) {
     throw std::runtime_error("Failed to add a new commit to the repository: " +
                              local_path);
   }
 
-  std::string git_push = "git -C " + local_path + " push origin master";
+  std::string git_push = GIT_COMMAND_DIR + local_path + " push origin master";
   result = std::system(git_push.c_str());
   if (result != 0) {
     throw std::runtime_error("Failed to add new files to the repository: " +
@@ -149,7 +153,7 @@ void processTasks(const std::list<storage::Repository> &tasks) {
 }
 } // namespace worker
 
-int main(int argc, char *argv[]) {
+auto main(int argc, char *argv[]) -> int {
   if (argc < 2) {
     std::cerr << "Configuration file should be provided" << std::endl;
     return 1;
