@@ -63,6 +63,24 @@ auto checkGitRepoExists(const std::string &local_path) -> bool {
          std::filesystem::is_directory(git_dir);
 }
 
+void retrieveGitRepo(const std::string &local_path) {
+  int result = 0;
+  std::string fetch_repo = GIT_COMMAND_DIR + local_path + " fetch origin";
+  result = std::system(fetch_repo.c_str());
+  if (result != 0) {
+    throw std::runtime_error("Failed to fetch Git repository at: " +
+                             local_path);
+  }
+
+  std::string merge_repo =
+      GIT_COMMAND_DIR + local_path + " merge origin/master";
+  result = std::system(merge_repo.c_str());
+  if (result != 0) {
+    throw std::runtime_error("Failed to merge Git repository at: " +
+                             local_path);
+  }
+}
+
 void setupGitRepo(const std::string &local_path,
                   const std::string &remote_path) {
   int result = 0;
@@ -140,6 +158,7 @@ void processTasks(const std::list<storage::Repository> &tasks) {
         setupGitRepo(task.local_path, task.remote_path);
       }
 
+      retrieveGitRepo(task.local_path);
       updateFiles(task.target_path, task.local_path);
       updateLocalRepo(task.local_path);
       updateRemoteRepo(task.local_path, commit_message);

@@ -13,3 +13,4 @@ if(CLANG_TIDY)
     set_target_properties(upgit PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY}")
 endif()
 
+install(TARGETS upgit DESTINATION bin)
