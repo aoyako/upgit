@@ -10,7 +10,7 @@ Upload local files to a git repositiry
 `upgit /path/to/config`
 
 ### Configuration format
-Space separated text file in a format. Each line must contain exactly 3 columns:
+Space separated text file in the following format. Each line must contain exactly 3 columns:
 | Column 1 | Column 2 | Column 3 |
 |-----------------|-----------------|-----------------|
 | Path to a local folder where git repository will be cached | URL to a git repository | Path to a local file or folder that will be copied to the repository  |

@@ -63,6 +63,15 @@ auto checkGitRepoExists(const std::string &local_path) -> bool {
          std::filesystem::is_directory(git_dir);
 }
 
+auto gitRemoteBranchExists(const std::string &local_path,
+                           const std::string &branch_name) -> bool {
+  std::string fetch_repo = GIT_COMMAND_DIR + local_path +
+                           " ls-remote --exit-code --heads origin " +
+                           branch_name;
+  int result = std::system(fetch_repo.c_str());
+  return result == 0;
+}
+
 void retrieveGitRepo(const std::string &local_path) {
   int result = 0;
   std::string fetch_repo = GIT_COMMAND_DIR + local_path + " fetch origin";
@@ -72,12 +81,14 @@ void retrieveGitRepo(const std::string &local_path) {
                              local_path);
   }
 
-  std::string merge_repo =
-      GIT_COMMAND_DIR + local_path + " merge origin/master";
-  result = std::system(merge_repo.c_str());
-  if (result != 0) {
-    throw std::runtime_error("Failed to merge Git repository at: " +
-                             local_path);
+  if (gitRemoteBranchExists(local_path, "master")) {
+    std::string merge_repo =
+        GIT_COMMAND_DIR + local_path + " merge origin/master";
+    result = std::system(merge_repo.c_str());
+    if (result != 0) {
+      throw std::runtime_error("Failed to merge Git repository at: " +
+                               local_path);
+    }
   }
 }
 
